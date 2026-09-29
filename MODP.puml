@@ -1,0 +1,442 @@
+@startuml lasa
+
+class Venta{
+    id
+    fechaYHora
+    detalle:DetalleVenta
+    estado:Estado
+}
+
+class DetalleVenta{
+    id
+    productoSucursal
+    cantidad
+    precioUnitarioHistorico
+}
+
+class Cliente{
+    id
+    razonSocial
+    telefono
+    email
+    cuit
+    cuil
+}
+
+class TipoCliente{
+    id
+    nombre
+    descripcion
+}
+
+class PrecioProducto{
+    id
+    producto
+    tipoCliente
+    precio
+    fechaDesde
+    fechaHasta
+}
+
+class Proveedor{
+    id
+    razonSocial
+    telefono
+    email
+    cuit
+    cuil
+    compra:Compra
+    pago:Pago
+    estado
+}
+
+class Estado{
+    id
+    ambito
+    nombre
+}
+
+class Producto{
+    id
+    nombre
+    unidad
+    unidadesXReceta
+    itemReceta:ItemReceta
+    cantidadEsperadaMes
+    horasManoDeObraXReceta
+    factorComplejidad:FactorComplejidad
+}
+enum FactorComplejidad{
+    UNO = 1
+    UNO_Y_MEDIO = 1.5
+    DOS = 2
+}
+
+class ProductoSucursal{
+    id
+    producto
+    sucursal
+    stockActual
+    stockMinimo
+    activo
+}
+
+class Insumo{
+    id
+    nombre
+    unidad
+}
+
+class InsumoSucursal{
+    id
+    insumo
+    sucursal
+    stockActual
+    stockMinimo
+}
+
+class PrecioInsumo{
+    id
+    insumo
+    precio
+    fechaDesde
+    fechaHasta
+}
+
+class MovimientoStock{
+    id
+    cantidad
+    fechaYHora
+    tipo:TipoMovimiento
+}
+
+class TipoMovimiento{
+    id
+    nombre
+    descripcion
+}
+
+class AjusteStock{
+    id
+    cantidad
+    fechaYHora
+    motivo
+}
+
+class ItemReceta{
+    id
+    insumo
+    cantidad
+}
+
+class Pago{
+    id
+    fechaYHora
+    medio:MedioPago
+    detalle:DetallePago
+    cheque:Cheque
+}
+
+class DetallePago{
+    id
+    monto
+    compra:Compra
+}
+
+class Cobro{
+    id
+    fechaYHora
+    monto
+    medio:MedioPago
+    detalle:DetalleCobro
+    cheque:Cheque
+}
+
+class DetalleCobro{
+    id
+    monto
+    venta:Venta
+}
+
+class CIF{
+    id
+    tipoCIF:TipoCIF
+    fechaYHora
+    monto
+}
+
+class Unidad{
+    id: number
+    name: string
+    description: string
+    scope: string
+}
+
+class Empleado{
+    id
+    nombre
+    apellido
+    salarioXhora
+    rol:RolEmpleado
+    telefono
+    email
+    cuit
+    cuil
+}
+
+class RolEmpleado{
+    id
+    nombre
+    descripcion
+    area:Area
+}
+
+class Area{
+    id
+    nombre
+    descripcion
+}
+
+class TipoCIF{
+    id
+    nombre
+    descripcion
+}
+
+class Sucursal{
+    id
+    nombre
+    dirección
+    ciudadID
+    tienePlanta
+}
+
+class Ciudad{
+    id
+    nombre
+}
+
+
+class Usuario{
+    id
+    nombre
+    email
+    contraseña
+    rol:RolUsuario
+}
+
+class RolUsuario{
+    id
+    nombre
+    descripcion
+}
+
+class Auditoria{
+    id
+    fechaYHora
+    accion
+    entidad
+    idEntidad
+}
+
+class InstanciaDeProduccion{
+    id
+    detalle:DetalleInstanciaDeProduccion
+    fechaYHora
+}
+
+class DetalleInstanciaDeProduccion{
+    id
+    producto
+    cantidad
+}
+
+class Reparto{
+    id
+    fechaHora
+}
+
+class DetalleReparto{
+    id
+    cantidad
+}
+
+class MedioPago{
+    id
+    nombre
+    descripcion
+}
+
+class Compra{
+    id
+    fechaYHora
+    detalle:DetalleCompra
+    estado:Estado    
+}
+
+class Cheque{
+    id
+    titular
+    cuil
+    monto
+    fechaEmisión
+    fechaCobro
+    estado:Estado
+}
+
+
+class Promocion{
+    id
+    nombre
+    fechaDesde
+    fechaHasta
+    valor
+}
+
+class TipoPromocion{
+    id
+    nombre
+    descripcion
+}
+
+class PromocionProducto{
+    id
+    promocion
+    producto
+}
+
+class PromocionTipoCliente{
+    id
+    promocion
+    tipoCliente
+}
+
+class DetalleCompra{
+    id
+    insumoSucursal
+    cantidad
+    precioUnitarioHistorico
+}
+
+class TipoProducto{
+   id
+   nombre
+   descripcion
+}
+
+' Ventas y clientes
+
+Venta "1" --> "0..*" DetalleVenta
+DetalleVenta "0..*" --> "1" ProductoSucursal
+
+Cliente "1" --> "0..*" Venta
+Cliente "1" --> "0..*" Cobro
+Cliente "0..*" --> "1" TipoCliente
+
+Venta "0..*" --> "1" Estado
+
+' Precios
+
+Producto "1" --> "0..*" PrecioProducto
+TipoCliente "1" --> "0..*" PrecioProducto
+
+Insumo "1" --> "0..*" PrecioInsumo
+PrecioInsumo "0..*" --> "1" Proveedor
+
+' Productos e insumos
+
+Producto "1" --> "0..*" ItemReceta
+ItemReceta "0..*" --> "1" Insumo
+
+Producto "0..*" --> "1" Unidad
+Insumo "0..*" --> "1" Unidad
+
+Producto "1" --> "0..*" ProductoSucursal
+Sucursal "1" --> "0..*" ProductoSucursal
+
+Insumo "1" --> "0..*" InsumoSucursal
+Sucursal "1" --> "0..*" InsumoSucursal
+
+TipoProducto "1" <-- "0..*" Producto
+
+' Compras y proveedores
+
+Compra "1" --> "0..*" DetalleCompra
+DetalleCompra "0..*" --> "1" InsumoSucursal
+
+Proveedor "1" --> "0..*" Compra
+Proveedor "1" --> "0..*" Pago
+
+Compra "0..*" --> "1" Estado
+
+' Pagos y cobros
+
+Pago "1" --> "0..*" DetallePago
+DetallePago "0..*" --> "1" Compra
+
+Cobro "1" --> "0..*" DetalleCobro
+DetalleCobro "0..*" --> "1" Venta
+
+Pago "0..*" --> "1" MedioPago
+Cobro "0..*" --> "1" MedioPago
+
+Pago "1" --> "0..1" Cheque
+Cobro "1" --> "0..1" Cheque
+
+
+Cheque "0..*" --> "1" Estado
+
+' Producción
+
+InstanciaDeProduccion "1" --> "0..*" DetalleInstanciaDeProduccion
+DetalleInstanciaDeProduccion "0..*" --> "1" Producto
+
+InstanciaDeProduccion "0..*" --> "1" Empleado
+InstanciaDeProduccion "0..*" --> "1" Sucursal
+
+InstanciaDeProduccion "1" --> "0..*" Reparto
+Reparto "0..*" --> "1" Sucursal
+Reparto "1" --> "0..*" DetalleReparto
+DetalleReparto "0..*" --> "1" DetalleInstanciaDeProduccion
+Sucursal "0..*" --> "1" Ciudad
+
+' Movimientos de stock
+
+MovimientoStock "0..*" --> "1" TipoMovimiento
+ProductoSucursal "1" --> "0..*" MovimientoStock
+InsumoSucursal "1" --> "0..*" MovimientoStock
+
+' Ajustes de stock
+' Cada ajuste debe referenciar exactamente uno de los dos tipos de existencia.
+
+AjusteStock "0..*" --> "0..1" ProductoSucursal
+AjusteStock "0..*" --> "0..1" InsumoSucursal
+AjusteStock "0..*" --> "1" Usuario
+
+' CIF
+
+CIF "0..*" --> "1" TipoCIF
+
+' Empleados
+
+Empleado "0..*" --> "1" RolEmpleado
+RolEmpleado "0..*" --> "1" Area
+
+' Promociones
+
+Promocion "0..*" --> "1" TipoPromocion
+
+Promocion "1" --> "0..*" PromocionProducto
+PromocionProducto "0..*" --> "1" Producto
+
+Promocion "1" --> "0..*" PromocionTipoCliente
+PromocionTipoCliente "0..*" --> "1" TipoCliente
+
+DetalleVenta "0..*" --> "0..1" Promocion
+
+' Usuarios y trazabilidad
+
+Usuario "0..*" --> "1" RolUsuario
+Usuario "1" --> "0..*" Auditoria
+
+@enduml
