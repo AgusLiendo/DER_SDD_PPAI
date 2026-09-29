@@ -1,4 +1,4 @@
-@startuml DER
+@startuml DER-Optimizado
 ' ============================================================
 ' DER (Diagrama Entidad-Relacion) derivado de MODP.puml
 ' Notacion IE / crow's foot.
