@@ -1,0 +1,518 @@
+@startuml DER
+' ============================================================
+' DER (Diagrama Entidad-Relacion) derivado de MODP.puml
+' Notacion IE / crow's foot.
+'   PK = clave primaria        FK = clave foranea
+'
+' Reglas de conversion aplicadas:
+'  - Se conservan TODAS las entidades y sus atributos.
+'  - Cada referencia a otra entidad (atributo que apunta a una
+'    entidad) se marca como FK.
+'  - Se agregan las FK faltantes en el lado que corresponde:
+'    en toda relacion 1:N la FK vive en el lado "muchos" (hijo).
+'  - Los atributos de coleccion (1:N dibujados en el padre) son
+'    navegaciones inversas: NO son columnas, la FK vive en el hijo.
+'  - No hizo falta crear tablas intermedias: todas las relaciones
+'    N:M del modelo ya estan resueltas por entidades asociativas
+'    con id propio (ItemReceta, PromocionProducto,
+'    PromocionTipoCliente).
+' ============================================================
+
+skinparam linetype ortho
+hide circle
+hide empty members
+
+' -------------------- Ventas y clientes --------------------
+
+entity "Venta" as venta {
+  id <<PK>>
+  --
+  fechaYHora
+  estado <<FK>>
+  cliente <<FK>>
+}
+
+entity "DetalleVenta" as detalleventa {
+  id <<PK>>
+  --
+  productoSucursal <<FK>>
+  cantidad
+  precioUnitarioHistorico
+  venta <<FK>>
+  promocion <<FK>>
+}
+
+entity "Cliente" as cliente {
+  id <<PK>>
+  --
+  razonSocial
+  telefono
+  email
+  cuit
+  cuil
+  tipoCliente <<FK>>
+}
+
+entity "TipoCliente" as tipocliente {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "Estado" as estado {
+  id <<PK>>
+  --
+  ambito
+  nombre
+}
+
+' -------------------- Precios --------------------
+
+entity "PrecioProducto" as precioproducto {
+  id <<PK>>
+  --
+  producto <<FK>>
+  tipoCliente <<FK>>
+  precio
+  fechaDesde
+  fechaHasta
+}
+
+entity "PrecioInsumo" as precioinsumo {
+  id <<PK>>
+  --
+  insumo <<FK>>
+  precio
+  fechaDesde
+  fechaHasta
+  proveedor <<FK>>
+}
+
+' -------------------- Productos, insumos y stock --------------------
+
+entity "Producto" as producto {
+  id <<PK>>
+  --
+  nombre
+  unidad <<FK>>
+  unidadesXReceta
+  cantidadEsperadaMes
+  horasManoDeObraXReceta
+  factorComplejidad
+  tipoProducto <<FK>>
+}
+
+enum "FactorComplejidad" as factorcomplejidad {
+  UNO = 1
+  UNO_Y_MEDIO = 1.5
+  DOS = 2
+}
+
+entity "TipoProducto" as tipoproducto {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "Unidad" as unidad {
+  id : number <<PK>>
+  --
+  name : string
+  description : string
+  scope : string
+}
+
+entity "Insumo" as insumo {
+  id <<PK>>
+  --
+  nombre
+  unidad <<FK>>
+}
+
+entity "ProductoSucursal" as productosucursal {
+  id <<PK>>
+  --
+  producto <<FK>>
+  sucursal <<FK>>
+  stockActual
+  stockMinimo
+  activo
+}
+
+entity "InsumoSucursal" as insumosucursal {
+  id <<PK>>
+  --
+  insumo <<FK>>
+  sucursal <<FK>>
+  stockActual
+  stockMinimo
+}
+
+entity "ItemReceta" as itemreceta {
+  id <<PK>>
+  --
+  insumo <<FK>>
+  cantidad
+  producto <<FK>>
+}
+
+entity "MovimientoStock" as movimientostock {
+  id <<PK>>
+  --
+  cantidad
+  fechaYHora
+  tipo <<FK>>
+  productoSucursal <<FK>>
+  insumoSucursal <<FK>>
+}
+
+entity "TipoMovimiento" as tipomovimiento {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "AjusteStock" as ajustestock {
+  id <<PK>>
+  --
+  cantidad
+  fechaYHora
+  motivo
+  productoSucursal <<FK>>
+  insumoSucursal <<FK>>
+  usuario <<FK>>
+}
+
+' -------------------- Compras y proveedores --------------------
+
+entity "Proveedor" as proveedor {
+  id <<PK>>
+  --
+  razonSocial
+  telefono
+  email
+  cuit
+  cuil
+  estado
+}
+
+entity "Compra" as compra {
+  id <<PK>>
+  --
+  fechaYHora
+  estado <<FK>>
+  proveedor <<FK>>
+}
+
+entity "DetalleCompra" as detallecompra {
+  id <<PK>>
+  --
+  insumoSucursal <<FK>>
+  cantidad
+  precioUnitarioHistorico
+  compra <<FK>>
+}
+
+' -------------------- Pagos y cobros --------------------
+
+entity "Pago" as pago {
+  id <<PK>>
+  --
+  fechaYHora
+  medio <<FK>>
+  cheque <<FK>>
+  proveedor <<FK>>
+}
+
+entity "DetallePago" as detallepago {
+  id <<PK>>
+  --
+  monto
+  compra <<FK>>
+  pago <<FK>>
+}
+
+entity "Cobro" as cobro {
+  id <<PK>>
+  --
+  fechaYHora
+  monto
+  medio <<FK>>
+  cheque <<FK>>
+  cliente <<FK>>
+}
+
+entity "DetalleCobro" as detallecobro {
+  id <<PK>>
+  --
+  monto
+  venta <<FK>>
+  cobro <<FK>>
+}
+
+entity "MedioPago" as mediopago {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "Cheque" as cheque {
+  id <<PK>>
+  --
+  titular
+  cuil
+  monto
+  fechaEmisión
+  fechaCobro
+  estado <<FK>>
+}
+
+' -------------------- Produccion y reparto --------------------
+
+entity "InstanciaDeProduccion" as instanciadeproduccion {
+  id <<PK>>
+  --
+  fechaYHora
+  empleado <<FK>>
+  sucursal <<FK>>
+}
+
+entity "DetalleInstanciaDeProduccion" as detalleinstanciadeproduccion {
+  id <<PK>>
+  --
+  producto <<FK>>
+  cantidad
+}
+
+entity "Reparto" as reparto {
+  id <<PK>>
+  --
+  fechaHora
+  instanciaDeProduccion <<FK>>
+  sucursal <<FK>>
+}
+
+entity "DetalleReparto" as detallereparto {
+  id <<PK>>
+  --
+  cantidad
+  reparto <<FK>>
+  detalleInstanciaDeProduccion <<FK>>
+}
+
+' -------------------- Empleados --------------------
+
+entity "Empleado" as empleado {
+  id <<PK>>
+  --
+  nombre
+  apellido
+  salarioXhora
+  rol <<FK>>
+  telefono
+  email
+  cuit
+  cuil
+}
+
+entity "RolEmpleado" as rolempleado {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+  area <<FK>>
+}
+
+entity "Area" as area {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+' -------------------- CIF --------------------
+
+entity "CIF" as cif {
+  id <<PK>>
+  --
+  tipoCIF <<FK>>
+  fechaYHora
+  monto
+}
+
+entity "TipoCIF" as tipocif {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+' -------------------- Sucursales y ciudades --------------------
+
+entity "Sucursal" as sucursal {
+  id <<PK>>
+  --
+  nombre
+  dirección
+  ciudadID <<FK>>
+  tienePlanta
+}
+
+entity "Ciudad" as ciudad {
+  id <<PK>>
+  --
+  nombre
+}
+
+' -------------------- Promociones --------------------
+
+entity "Promocion" as promocion {
+  id <<PK>>
+  --
+  nombre
+  fechaDesde
+  fechaHasta
+  valor
+  tipoPromocion <<FK>>
+}
+
+entity "TipoPromocion" as tipopromocion {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "PromocionProducto" as promocionproducto {
+  id <<PK>>
+  --
+  promocion <<FK>>
+  producto <<FK>>
+}
+
+entity "PromocionTipoCliente" as promociontipocliente {
+  id <<PK>>
+  --
+  promocion <<FK>>
+  tipoCliente <<FK>>
+}
+
+' -------------------- Usuarios y trazabilidad --------------------
+
+entity "Usuario" as usuario {
+  id <<PK>>
+  --
+  nombre
+  email
+  contraseña
+  rol <<FK>>
+}
+
+entity "RolUsuario" as rolusuario {
+  id <<PK>>
+  --
+  nombre
+  descripcion
+}
+
+entity "Auditoria" as auditoria {
+  id <<PK>>
+  --
+  fechaYHora
+  accion
+  entidad
+  idEntidad
+  usuario <<FK>>
+}
+
+' ============================================================
+' Relaciones (notacion crow's foot)
+' ============================================================
+
+' Ventas y clientes
+venta ||--o{ detalleventa
+detalleventa }o--|| productosucursal
+cliente ||--o{ venta
+cliente ||--o{ cobro
+cliente }o--|| tipocliente
+venta }o--|| estado
+detalleventa }o--o| promocion
+
+' Precios
+producto ||--o{ precioproducto
+tipocliente ||--o{ precioproducto
+insumo ||--o{ precioinsumo
+precioinsumo }o--|| proveedor
+
+' Productos e insumos
+producto ||--o{ itemreceta
+itemreceta }o--|| insumo
+producto }o--|| unidad
+insumo }o--|| unidad
+producto ||--o{ productosucursal
+sucursal ||--o{ productosucursal
+insumo ||--o{ insumosucursal
+sucursal ||--o{ insumosucursal
+tipoproducto ||--o{ producto
+producto }o--|| factorcomplejidad
+
+' Compras y proveedores
+compra ||--o{ detallecompra
+detallecompra }o--|| insumosucursal
+proveedor ||--o{ compra
+proveedor ||--o{ pago
+compra }o--|| estado
+
+' Pagos y cobros
+pago ||--o{ detallepago
+detallepago }o--|| compra
+cobro ||--o{ detallecobro
+detallecobro }o--|| venta
+pago }o--|| mediopago
+cobro }o--|| mediopago
+pago ||--o| cheque
+cobro ||--o| cheque
+cheque }o--|| estado
+
+' Produccion y reparto
+instanciadeproduccion ||--o{ detalleinstanciadeproduccion
+detalleinstanciadeproduccion }o--|| producto
+instanciadeproduccion }o--|| empleado
+instanciadeproduccion }o--|| sucursal
+instanciadeproduccion ||--o{ reparto
+reparto }o--|| sucursal
+reparto ||--o{ detallereparto
+detallereparto }o--|| detalleinstanciadeproduccion
+sucursal }o--|| ciudad
+
+' Movimientos y ajustes de stock
+movimientostock }o--|| tipomovimiento
+productosucursal ||--o{ movimientostock
+insumosucursal ||--o{ movimientostock
+ajustestock }o--o| productosucursal
+ajustestock }o--o| insumosucursal
+ajustestock }o--|| usuario
+
+' CIF
+cif }o--|| tipocif
+
+' Empleados
+empleado }o--|| rolempleado
+rolempleado }o--|| area
+
+' Promociones
+promocion }o--|| tipopromocion
+promocion ||--o{ promocionproducto
+promocionproducto }o--|| producto
+promocion ||--o{ promociontipocliente
+promociontipocliente }o--|| tipocliente
+
+' Usuarios y trazabilidad
+usuario }o--|| rolusuario
+usuario ||--o{ auditoria
+
+@enduml
